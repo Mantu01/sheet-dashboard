@@ -1,6 +1,5 @@
 import User from '../models/userModel.js';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
 
 export const register = async (req, res) => {
 	try {
@@ -60,7 +59,8 @@ export const logout = async (req, res) => {
 
 export const me = async (req, res) => {
 	try {
-		res.status(200).json({data:req.user});
+		const user = await User.findById(req.userId).select('-password').populate('sheet');
+		res.status(200).json({data:user});
 	} catch (error) {
 		console.log(error);
 		res.status(500).json({ message: 'Server error', error: error.message });
