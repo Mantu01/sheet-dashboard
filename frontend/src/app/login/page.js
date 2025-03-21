@@ -48,8 +48,6 @@ const LoginPage = () => {
     if (validateForm()) {
       axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,formData,{withCredentials: true})
        .then((response) => {
-        console.log(response.data);
-        
         dispatch(login(response.data.data));
         alert('Login successful!');
         setFormData({
