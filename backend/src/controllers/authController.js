@@ -59,7 +59,9 @@ export const logout = async (req, res) => {
 
 export const me = async (req, res) => {
 	try {
-		const user = await User.findById(req.userId).select('-password').populate('sheet');
+		const user = await User.findById(req.userId)
+  	.select("-password").populate({path: "sheet",});
+		
 		res.status(200).json({data:user});
 	} catch (error) {
 		console.log(error);

@@ -9,10 +9,16 @@ const sheetSchema=new mongoose.Schema({
     type:String,
     required:true
   },
-  columns:{
-    type:[String],
-    required:true
-  },
+  columns:[{
+    header:{
+      type:String,
+      required:true
+    },
+    type:{
+      type: String,
+      required:true
+    }
+  }],
   createdBy:{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'

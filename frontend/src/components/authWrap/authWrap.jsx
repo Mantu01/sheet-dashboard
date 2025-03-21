@@ -1,26 +1,27 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
 import { login, logout } from "@/store/userSlice";
+import axios from "axios";
+import LoadingSpinner from "./LoadingSpinner";
 
-const AuthWrap = ({ children, requireAuth = true }) => {
+const AuthWrap = ({ children }) => {
   const router = useRouter();
+  const pathname = usePathname(); // Get current path
   const dispatch = useDispatch();
-  const {isAuthenticated} = useSelector((state) => state.auth);
+  const { isAuthenticated } = useSelector((state) => state.auth);
   const [loading, setLoading] = useState(true);
+  const [hasRedirected, setHasRedirected] = useState(false); // Track if we've redirected once
 
   useEffect(() => {
     const verifyUserSession = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`);
-        if (response.ok) {
-          console.log(response);
+        const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, { withCredentials: true });
+        if (data?.data) {
           
-          const data = await response.json();
-          dispatch(login(data.user));
-          router.push('/dashboard');
+          dispatch(login(data.data));
         } else {
           dispatch(logout());
         }
@@ -39,15 +40,17 @@ const AuthWrap = ({ children, requireAuth = true }) => {
   }, [isAuthenticated, dispatch]);
 
   useEffect(() => {
-    if(isAuthenticated) {
-      router.push("/dashboard");
+    if (!loading && !hasRedirected) {
+      if (isAuthenticated && pathname === "/login") {
+        router.replace("/dashboard");
+      } else if (!isAuthenticated && pathname !== "/login") {
+        router.replace("/login");
+      }
+      setHasRedirected(true);
     }
-    if (!loading && requireAuth && !isAuthenticated) {
-      router.push("/login");
-    }
-  }, [loading, isAuthenticated, requireAuth, router]);
+  }, [loading, isAuthenticated, pathname, router, hasRedirected]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <LoadingSpinner />;
 
   return <>{children}</>;
 };

@@ -1,6 +1,7 @@
 import googleSheetService from "../config/google.js";
 import Sheet from "../models/sheetModel.js";
 import User from "../models/userModel.js";
+import { columnToLetter } from "../utils/columnToLetter.js";
 
 export const getSheetData = async (req, res) => {
   try {
@@ -24,6 +25,7 @@ export const getSheetData = async (req, res) => {
 
 export const createSheet = async (req, res) => {
   const { title, columns } = req.body;
+  const colVals=columns.map(col=>col.header);
 
   try {
     const response = await googleSheetService.service.spreadsheets.create({
@@ -34,10 +36,16 @@ export const createSheet = async (req, res) => {
     });
     
     const spreadsheetId = response.data.spreadsheetId;
-    const sheet=await Sheet.create({ title, createdBy: req.user._id, columns, sheetId: spreadsheetId });
-    await User.findByIdAndUpdate(req.user._id, { $push: { sheet: sheet._id } });
-    console.log("response", response.data);
-    return res.status(200).json({ sheetId:spreadsheetId, message: 'Spreadsheet created successfully' });
+    await googleSheetService.googleSheet.spreadsheets.values.append({
+      auth: googleSheetService.auth,
+      spreadsheetId,
+      range: 'Sheet1',
+      valueInputOption: 'USER_ENTERED',
+      resource: { values: [colVals] },
+    });
+    const sheet=await Sheet.create({ title, createdBy: req.userId, columns, sheetId: spreadsheetId });
+    await User.findByIdAndUpdate(req.userId, { $push: { sheet: sheet._id } });
+    return res.status(200).json({sheet:sheet,message: 'Spreadsheet created successfully' });
   } catch (error) {
     console.error('Error creating spreadsheet:', error);
     return res.status(500).json({ message: 'Server error', error: error.message });
@@ -49,10 +57,16 @@ export const updateSheetData = async (req, res) => {
   try {
     const { spreadsheetId } = req.params;
     const { values } = req.body;
-    const response = await googleSheetService.googleSheet.spreadsheets.values.append({
+
+    const numRows = values.length;
+    const numCols = values[0]?.length || 0;
+    const endColumnLetter = columnToLetter(numCols - 1);
+    const range = `Sheet1!A1:${endColumnLetter}${numRows}`;
+
+    const response = await googleSheetService.googleSheet.spreadsheets.values.update({
       auth: googleSheetService.auth,
       spreadsheetId,
-      range: 'Sheet1!A:A',
+      range,
       valueInputOption: 'USER_ENTERED',
       resource: { values },
     });
@@ -66,8 +80,8 @@ export const updateSheetData = async (req, res) => {
 export const deleteSheetData = async (req, res) => {
   try {
     const { sheetId } = req.params;
-    const user=await User.findById(req.user._id);
-    const updatedSheets = req.user.sheet.filter((sheet) => sheet.sheetId !== sheetId);
+    const user=await User.findById(req.userId);
+    const updatedSheets = user.sheet.filter((sheet) => sheet.sheetId !== sheetId);
     user.sheet = updatedSheets;
     await user.save();
     await Sheet.findByIdAndDelete(sheetId);
