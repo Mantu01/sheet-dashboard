@@ -3,31 +3,27 @@ import { NextResponse } from 'next/server';
 const publicRoutes = ['/login', '/signup'];
 const protectedRoutes = ['/dashboard'];
 
-export async function middleware(request) {
-  const { pathname } = new URL(request.url);
-  const isPublicRoute = publicRoutes.includes(pathname);
-  const isProtectedRoute = protectedRoutes.includes(pathname);
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
-      credentials: 'include',
-      headers: { cookie: request.headers.get('cookie') || '' }
-    });
+export function middleware(request) {
+  const { pathname } = request.nextUrl;
+  const token = request.cookies.get('token')?.value || '';
 
-    const isAuthenticated = response.ok;
-    if (isAuthenticated && isPublicRoute) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-    }
-    if (!isAuthenticated && isProtectedRoute) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
-  } catch (error) {
-    console.error('Authentication check failed:', error);
-    if (isProtectedRoute) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
+  const isPublicPath = publicRoutes.includes(pathname);
+  const isProtectedPath = protectedRoutes.includes(pathname);
+
+  // If authenticated user tries to access login or signup, redirect to dashboard
+  if (isPublicPath && token) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
+
+  // If unauthenticated user tries to access protected routes, redirect to login
+  if (isProtectedPath && !token) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  // Allow access to all other routes for both authenticated and unauthenticated users
   return NextResponse.next();
 }
+
 export const config = {
   matcher: [...publicRoutes, ...protectedRoutes],
 };

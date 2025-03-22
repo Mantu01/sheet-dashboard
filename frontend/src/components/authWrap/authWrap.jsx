@@ -23,8 +23,9 @@ const AuthWrap = ({ children }) => {
         
         if (data?.data) {
           dispatch(login(data.data));
-          router.push("/");
+          router.push("/dashboard");
         } else {
+          router.push("/login");
           dispatch(logout());
         }
       } catch (error) {
