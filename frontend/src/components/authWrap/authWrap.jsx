@@ -1,54 +1,45 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { login, logout } from "@/store/userSlice";
 import axios from "axios";
 import LoadingSpinner from "./LoadingSpinner";
+import { useRouter } from "next/navigation";
 
 const AuthWrap = ({ children }) => {
-  const router = useRouter();
-  const pathname = usePathname(); // Get current path
   const dispatch = useDispatch();
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const router = useRouter();
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
   const [loading, setLoading] = useState(true);
-  const [hasRedirected, setHasRedirected] = useState(false); // Track if we've redirected once
 
   useEffect(() => {
-    const verifyUserSession = async () => {
+    const fetchUserData = async () => {
       try {
-        const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, { withCredentials: true });
+        const { data } = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, 
+          { withCredentials: true }
+        );
+        
         if (data?.data) {
-          
           dispatch(login(data.data));
+          router.push("/");
         } else {
           dispatch(logout());
         }
       } catch (error) {
-        console.error("Session verification failed:", error);
+        console.error("Failed to fetch user data:", error);
         dispatch(logout());
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
-
-    if (!isAuthenticated) {
-      verifyUserSession();
+    if (!isAuthenticated || (isAuthenticated && !user)) {
+      fetchUserData();
     } else {
       setLoading(false);
     }
   }, [isAuthenticated, dispatch]);
-
-  useEffect(() => {
-    if (!loading && !hasRedirected) {
-      if (isAuthenticated && pathname === "/login") {
-        router.replace("/dashboard");
-      } else if (!isAuthenticated && pathname !== "/login") {
-        router.replace("/login");
-      }
-      setHasRedirected(true);
-    }
-  }, [loading, isAuthenticated, pathname, router, hasRedirected]);
 
   if (loading) return <LoadingSpinner />;
 

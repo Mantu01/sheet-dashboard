@@ -5,6 +5,7 @@ import axios from 'axios';
 import Link from 'next/link';
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { ToastContainer, toast } from "react-toastify";
 
 const LoginPage = () => {
 
@@ -48,8 +49,8 @@ const LoginPage = () => {
     if (validateForm()) {
       axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,formData,{withCredentials: true})
        .then((response) => {
-        dispatch(login(response.data.data));
-        alert('Login successful!');
+        dispatch(login());
+        toast.success('Login successful!');
         setFormData({
           email: '',
           password: '',
@@ -60,6 +61,7 @@ const LoginPage = () => {
   
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <ToastContainer/>
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">

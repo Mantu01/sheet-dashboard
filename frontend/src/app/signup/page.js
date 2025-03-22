@@ -3,8 +3,11 @@
 import axios from 'axios';
 import Link from 'next/link';
 import React, { useState } from 'react';
+import { useRouter } from "next/navigation";
+import { ToastContainer, toast } from "react-toastify";
 
 const SignupPage = () => {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -52,8 +55,8 @@ const SignupPage = () => {
     if (validateForm()) {
       axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`,formData)
        .then((response) => {
-        alert("Signed in successfully, please login now");
-        console.log(response);
+        toast.success("Signed in successfully, please login now");
+        router.push('/login');
         setFormData({
           name: '',
           email: '',
@@ -62,13 +65,14 @@ const SignupPage = () => {
         });
        })
         .catch(() => {
-          alert("Failed to sign in")
+          toast.error("Error registering");
         });
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <ToastContainer/>
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
