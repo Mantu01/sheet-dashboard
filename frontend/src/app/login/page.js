@@ -59,7 +59,10 @@ const LoginPage = () => {
           email: '',
           password: '',
         });
-        })
+      })
+       .catch((error) => {
+        toast.error(error.response.data.message || 'Failed to login. Please check your credentials.');
+      });
     }
   };
 

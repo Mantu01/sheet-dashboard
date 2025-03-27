@@ -64,8 +64,8 @@ const SignupPage = () => {
           confirmPassword: ''
         });
        })
-        .catch(() => {
-          toast.error("Error registering");
+        .catch((error) => {
+          toast.error(error.response.data.message || "Error registering");
         });
     }
   };
