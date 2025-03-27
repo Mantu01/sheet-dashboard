@@ -2,7 +2,7 @@ import { selectSheet } from '@/store/sheetSlice';
 import { addSheets } from '@/store/userSlice';
 import axios from 'axios';
 import React from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 const CreateTableModal = ({ setShowCreateModal }) => {
   const [title, setTitle] = React.useState('');
@@ -12,6 +12,7 @@ const CreateTableModal = ({ setShowCreateModal }) => {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const dispatch=useDispatch();
+  const {user}=useSelector(st=>st.auth);
 
   React.useEffect(() => {
     const initialColumnConfig = Array(Math.min(parseInt(numColumns) || 0, 50)).fill().map((_, i) => ({
@@ -49,7 +50,7 @@ const CreateTableModal = ({ setShowCreateModal }) => {
     setError('');
     
     try {
-      const { data } = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/sheets`, {title,columns: columnConfig},{withCredentials: true});
+      const { data } = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/sheets`, {title,columns: columnConfig,userId:user._id},{withCredentials: true});
       dispatch(selectSheet(data.sheet));
       dispatch(addSheets(data.sheet));
       setShowCreateModal(false);

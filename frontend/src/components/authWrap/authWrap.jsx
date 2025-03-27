@@ -1,48 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { login, logout } from "@/store/userSlice";
-import axios from "axios";
-import LoadingSpinner from "./LoadingSpinner";
+import { logout } from "@/store/userSlice";
 import { useRouter } from "next/navigation";
 
 const AuthWrap = ({ children }) => {
   const dispatch = useDispatch();
   const router = useRouter();
-  const { isAuthenticated, user } = useSelector((state) => state.auth);
-  const [loading, setLoading] = useState(true);
+  const { isAuthenticated } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const { data } = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, 
-          { withCredentials: true }
-        );
-        
-        if (data?.data) {
-          dispatch(login(data.data));
-          router.push("/dashboard");
-        } else {
-          router.push("/login");
-          dispatch(logout());
-        }
-      } catch (error) {
-        console.error("Failed to fetch user data:", error);
-        dispatch(logout());
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (!isAuthenticated || (isAuthenticated && !user)) {
-      fetchUserData();
-    } else {
-      setLoading(false);
+    if (!isAuthenticated) {
+      router.push("/login");
     }
-  }, [isAuthenticated, dispatch]);
+  }, [isAuthenticated, router]);
 
-  if (loading) return <LoadingSpinner />;
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return <>{children}</>;
 };

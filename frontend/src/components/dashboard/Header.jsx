@@ -16,12 +16,28 @@ const Header = ({ setShowCreateModal }) => {
         dispatch(logout());
         window.location.href = '/login';
       })
+      .catch((error) => {
+        console.error('Logout failed:', error);
+        // Fallback logout even if API call fails
+        dispatch(logout());
+        window.location.href = '/login';
+      });
   };
 
   // Get user initials for avatar
   const getInitials = () => {
     if (!user || !user.name) return "U";
     return user.name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
+  // Safely get user name
+  const getUserName = () => {
+    return user?.name || 'User';
+  };
+
+  // Safely get user email
+  const getUserEmail = () => {
+    return user?.email || 'user@example.com';
   };
 
   return (
@@ -117,8 +133,8 @@ const Header = ({ setShowCreateModal }) => {
                     role="menu"
                   >
                     <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                      <p className="text-sm text-gray-500">{user.email || 'user@example.com'}</p>
+                      <p className="text-sm font-medium text-gray-900">{getUserName()}</p>
+                      <p className="text-sm text-gray-500">{getUserEmail()}</p>
                       <div className="mt-2">
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
                           Active Account
@@ -195,8 +211,8 @@ const Header = ({ setShowCreateModal }) => {
                   </div>
                 </div>
                 <div className="ml-3">
-                  <div className="text-base font-medium text-gray-800">{user.name}</div>
-                  <div className="text-sm font-medium text-gray-500">{user.email || 'user@example.com'}</div>
+                  <div className="text-base font-medium text-gray-800">{getUserName()}</div>
+                  <div className="text-sm font-medium text-gray-500">{getUserEmail()}</div>
                 </div>
               </div>
               <div className="mt-3 space-y-1">

@@ -21,7 +21,7 @@ export const login = async (req, res) => {
 		if(!email || !password){
 			return res.status(400).json({message:'All fields are required'});
 		}
-		const user=await User.findOne({email});
+		const user=await User.findOne({email}).populate({path: "sheet",});;
 		if(!user){
 			return res.status(400).json({message:'Invalid email'});
 		}
@@ -38,7 +38,7 @@ export const login = async (req, res) => {
 			httpOnly: true,
 			maxAge: 7*24 * 60 * 60 * 1000,
 		});
-		res.status(200).json({message:'Login successful',data:user._id});
+		res.status(200).json({message:'Login successful',data:user});
 	} catch (error) {
 		console.log(error);
 		res.status(500).json({ message: 'Server error', error: error.message });

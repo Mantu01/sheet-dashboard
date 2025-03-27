@@ -3,13 +3,17 @@
 import { login } from '@/store/userSlice';
 import axios from 'axios';
 import Link from 'next/link';
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { ToastContainer, toast } from "react-toastify";
 
 const LoginPage = () => {
 
+  const {isAuthenticated}=useSelector(st=>st.auth);
+
   const dispatch=useDispatch();
+  const router=useRouter();
 
   const [formData, setFormData] = useState({
     email: '',
@@ -49,7 +53,7 @@ const LoginPage = () => {
     if (validateForm()) {
       axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,formData,{withCredentials: true})
        .then((response) => {
-        dispatch(login());
+        dispatch(login(response.data.data));
         toast.success('Login successful!');
         setFormData({
           email: '',
@@ -58,6 +62,12 @@ const LoginPage = () => {
         })
     }
   };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/');
+    }
+  },[isAuthenticated]);
   
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

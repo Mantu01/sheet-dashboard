@@ -5,8 +5,8 @@ import authenticate from '../middleware/auth.js';
 
 const router = express.Router();
 router.get('/:sheetId', getSheetData);
-router.post('/',authenticate, createSheet);
-router.put('/:spreadsheetId',authenticate, updateSheetData);
-router.delete('/:sheetId',authenticate,deleteSheetData);
+router.post('/', createSheet);
+router.put('/:spreadsheetId', updateSheetData);
+router.delete('/:sheetId',deleteSheetData);
 
 export default router;

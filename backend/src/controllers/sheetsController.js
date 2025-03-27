@@ -24,7 +24,7 @@ export const getSheetData = async (req, res) => {
 };
 
 export const createSheet = async (req, res) => {
-  const { title, columns } = req.body;
+  const { title, columns,userId } = req.body;
   const colVals=columns.map(col=>col.header);
 
   try {
@@ -43,8 +43,8 @@ export const createSheet = async (req, res) => {
       valueInputOption: 'USER_ENTERED',
       resource: { values: [colVals] },
     });
-    const sheet=await Sheet.create({ title, createdBy: req.userId, columns, sheetId: spreadsheetId });
-    await User.findByIdAndUpdate(req.userId, { $push: { sheet: sheet._id } });
+    const sheet=await Sheet.create({ title, createdBy: userId, columns, sheetId: spreadsheetId });
+    await User.findByIdAndUpdate(userId, { $push: { sheet: sheet._id } });
     return res.status(200).json({sheet:sheet,message: 'Spreadsheet created successfully' });
   } catch (error) {
     console.error('Error creating spreadsheet:', error);

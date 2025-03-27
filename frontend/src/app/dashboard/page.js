@@ -5,14 +5,21 @@ import DataTable from '@/components/dashboard/DataTable';
 import EmptyState from '@/components/dashboard/EmptyState';
 import Header from '@/components/dashboard/Header';
 import TableSelector from '@/components/dashboard/TableSelector';
-import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 // Main App Component
 const ExcelClone = () => {
-
+  const router=useRouter()
   const {selectedSheet}=useSelector(state=>state.sheet);
   const {user}=useSelector(state=>state.auth);
+
+  useEffect(() =>{
+    if(!user){
+      router.push('/')
+    }
+  },[user]);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
 
